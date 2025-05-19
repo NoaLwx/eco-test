@@ -1,0 +1,239 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="jquery-3.0.0.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="common.css">
+
+
+        <title>Document</title>
+    </head>
+    <body >
+      
+     <!-- <div id="common"></div><br/>
+    <script> $("#common").load("common.html"); </script> -->
+      <script src="ambisonics.umd.js"></script>
+
+      <script src="hoa-panner.js"></script>
+      <!-- <script type="module" src="camera.js"></script> -->
+<div id='div-play-stop-buttons'>
+<p>
+Start / Stop audio: &nbsp;
+<button id="play" disabled>Play</button>
+<button id="stop" disabled>Stop</button>
+</p>
+</div>
+
+<!-- AUDIO ELEMENT -->
+<!-- <audio id="sound" src="./A Lonely Cherry Tree.mp3" loop></audio> -->
+<!-- <audio id="sound" src="./IMG_8061.mp3" loop></audio> -->
+      <!-- <audio id="sound" src="./IMG_8062 2.mp3" loop></audio> -->
+       <audio id="sound" src="./eco-1.wav" loop ></audio>
+
+<!-- AMBISONIC ORDER -->
+<div id='div-order'>
+<p>
+Set Ambisonic order: <span id="order-value"></span> &nbsp;
+</p>
+</div>
+
+<!-- AMBISONIC DECODING -->
+<div id='div-decoder'>
+<p>
+Set decoding filters: <span id="decoder-value"></span> &nbsp;
+</p>
+</div>
+
+<!-- OUTPUT VOLUME -->
+<!-- <div id='div-volume'>
+<label for="volume-slider">Volume</label> &nbsp;
+<input id="volume-slider" type="range" min="0.1" max="10" value="1" step="0.1" />
+</div> -->
+
+<hr>
+
+<!-- AMBISONIC MIRRORING -->
+<div id='div-mirror'>
+    <p>
+    Set mirroring: <span id="mirror-value">None</span> &nbsp;
+     <button id="M0" type="button" value="0">None</button>
+     <button id="M1" type="button" value="1">Front-Back</button>
+     <button id="M2" type="button" value="2">Left-Right</button>
+     <button id="M3" type="button" value="3">Up-Down</button>
+    </p>
+</div>
+
+<video id="video" autoplay playsinline style="display:none;"></video>
+<canvas id="cnv" style="border: solid 1px black;"></canvas>
+<p> 
+Azimuth: <span id="azim-value">0</span>
+Elevation: <span id="elev-value">0</span>
+</p>
+
+/
+<footer>
+    <hr>
+    <table>
+        <tr>
+            <th>Archontis Politis</th>
+            <th>David Poirier-Quinot</th>
+        </tr>
+        <tr>
+            <th>
+                <a href="mailto:archontis.politis@aalto.fi">archontis.politis@aalto.fi</a>
+            </th>
+            <th>
+                <a href="mailto:david.poirier-quinot@ircam.fr">david.poirier-quinot@ircam.fr</a>
+            </th>
+        </tr>
+    </table>
+</footer>
+
+
+<script>
+
+////////////////////////////
+// SET-UP GUI AND USER INPUT
+window.addEventListener("DOMContentLoaded", async () => {
+var azimValue = document.getElementById('azim-value');
+var elevValue = document.getElementById('elev-value');
+var orderValue = document.getElementById('order-value');
+var decoderValue = document.getElementById('decoder-value');
+var mirrorValue = document.getElementById('mirror-value');
+
+const stream = await navigator.mediaDevices.getUserMedia ({  
+    audio: false,
+    video: true,
+    facingMode: `user`,
+})
+        
+const video = document.getElementById (`video`);
+video.autoplay = true;
+video.srcObject = stream
+await video.play ()
+
+             
+const cnv = document.getElementById(`cnv`);
+cnv.width  = 1000;
+cnv.height = cnv.width * video.videoHeight / video.videoWidth;
+document.body.appendChild(cnv);  
+const ctx = cnv.getContext (`2d`);
+
+// Audio
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const audioElement = document.getElementById('sound');
+const track = audioCtx.createMediaElementSource(audioElement);
+
+const gainNode = audioCtx.createGain();
+const filterNode = audioCtx.createBiquadFilter();
+filterNode.type = "lowpass";
+ 
+track.connect(filterNode).connect(gainNode).connect(audioCtx.destination);
+
+const playBtn = document.getElementById("play");
+const stopBtn = document.getElementById("stop");
+
+playBtn.disabled = false;
+stopBtn.disabled = false;
+
+playBtn.addEventListener("click", async() =>{
+    await audioCtx.resume();
+    audioElement.play();
+})
+
+stopBtn.addEventListener("click", () =>{
+    audioElement.pause();
+    audioElement.currentTime = 0;
+})
+
+
+const draw_frame = async () => {
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, -cnv.width, 0, cnv.width, cnv.height);
+    ctx.restore();
+
+    const imageData = ctx.getImageData(0, 0, cnv.width, cnv.height);
+    const pixels = imageData.data;
+
+    let total_brightness = 0;
+    let totalWhiteX = 0;
+    let totalWhiteY = 0;
+    let whiteCount = 0;
+
+    for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+
+        const brightness = (r + g + b) / 3;
+        total_brightness += brightness / 255;
+
+        // Threshold
+        const bw = brightness < 128 ? 0 : 255;
+        pixels[i] = pixels[i + 1] = pixels[i + 2] = bw;
+
+        if (bw === 255) {
+            const index = i / 4;
+            const x = index % cnv.width;
+            const y = Math.floor(index / cnv.width);
+            totalWhiteX += x;
+            totalWhiteY += y;
+            whiteCount++;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    // Volume mapping
+    const avg_brightness = total_brightness / (pixels.length / 4);
+    const volume = 0.1 + avg_brightness;
+    gainNode.gain.setTargetAtTime(volume, audioCtx.currentTime, 0.05);
+
+    // Azimuth & elevation mapping
+    if (whiteCount > 0) {
+        const avgX = totalWhiteX / whiteCount;
+        const avgY = totalWhiteY / whiteCount;
+
+        const azim = Math.round(360 * (avgX - cnv.width / 2) / cnv.width);
+        const elev = Math.round(180 * (cnv.height / 2 - avgY) / cnv.height);
+
+        azimValue.innerHTML = azim;
+        elevValue.innerHTML = elev;
+
+        if (typeof mouseActionLocal === "function") {
+            mouseActionLocal([azim, elev]);
+        }
+    }
+
+    requestAnimationFrame(draw_frame);
+};
+
+     
+draw_frame ()
+
+
+    // volume
+//     var volumeSlider = document.getElementById('volume-slider');
+//     volumeSlider.addEventListener('input', function() {
+//   gainNode.gain.value = parseFloat(volumeSlider.value);
+//     });
+
+
+
+// function called when audiocontext.decodeAudioData fails to decode a given audio file, e.g. in Safari with .ogg vorbis format
+function onDecodeAudioDataError(error) {
+    var url = 'hjre';
+  alert("Browser cannot decode audio data..." + "\n\nError: " + error + "\n\n(If you re using Safari and get a null error, this is most likely due to Apple's shady plan going on to stop the .ogg format from easing web developer's life :)");
+}
+
+
+});
+
+</script>
+
+      
+
+    </body>
+    </html>
