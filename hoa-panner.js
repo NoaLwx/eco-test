@@ -10,14 +10,14 @@ context.onstatechange = function() {
     if (context.state === "suspended") { context.resume(); }
 }
 
-var soundUrl = "eco-1.wav";
+var soundUrl = "eco-2.wav";
 // var irUrl_0 = "IRs/ambisonic2binaural_filters/HOA3_IRC_1008_virtual.wav";
 // var irUrl_1 = "IRs/ambisonic2binaural_filters/aalto2016_N3.wav";
 // var irUrl_2 = "IRs/ambisonic2binaural_filters/HOA3_BRIRs-medium.wav";
 
-var irUrl_0 = "eco-1.wav";
-var irUrl_1 = "eco-1.wav";
-var irUrl_2 = "eco-1.wav";
+var irUrl_0 = "eco-2.wav";
+var irUrl_1 = "eco-2.wav";
+var irUrl_2 = "eco-2.wav";
 
 var maxOrder = 3;
 var orderOut = 3;
