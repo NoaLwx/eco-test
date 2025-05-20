@@ -20,7 +20,7 @@ var soundUrl = "eco-2.wav";
 // var irUrl_2 = "IRs/ambisonic2binaural_filters/HOA3_BRIRs-medium.wav";
 
 var irUrl_0 = "sounds/eco-1.0.wav";
-var irUrl_1 = "sounds/eco-reverb.wav";
+var irUrl_1 = "sounds/eco-reverb.mp3";
 var irUrl_2 = "sounds/eco-room.wav";
 
 var maxOrder = 3;
