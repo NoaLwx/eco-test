@@ -19,9 +19,9 @@ var soundUrl = "eco-2.wav";
 // var irUrl_1 = "IRs/ambisonic2binaural_filters/aalto2016_N3.wav";
 // var irUrl_2 = "IRs/ambisonic2binaural_filters/HOA3_BRIRs-medium.wav";
 
-var irUrl_0 = "eco-2.wav";
-var irUrl_1 = "eco-2.wav";
-var irUrl_2 = "eco-2.wav";
+var irUrl_0 = "sounds/eco-1.0.wav";
+var irUrl_1 = "sounds/eco-reverb.wav";
+var irUrl_2 = "sounds/eco-room.wav";
 
 var maxOrder = 3;
 var orderOut = 3;
@@ -47,7 +47,6 @@ var gainOut = context.createGain();
 
 // connect HOA blocks
 encoder.out.connect(mirror.in);
-
 mirror.out.connect(analyser.in);
 mirror.out.connect(limiter.in);
 limiter.out.connect(decoder.in);
