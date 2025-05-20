@@ -10,6 +10,10 @@ context.onstatechange = function() {
     if (context.state === "suspended") { context.resume(); }
 }
 
+function onDecodeAudioDataError(error) {
+    var url = 'hjre';
+  alert("Browser cannot decode audio data..." + "\n\nError: " + error + "\n\n(If you re using Safari and get a null error, this is most likely due to Apple's shady plan going on to stop the .ogg format from easing web developer's life :)");
+}
 var soundUrl = "eco-2.wav";
 // var irUrl_0 = "IRs/ambisonic2binaural_filters/HOA3_IRC_1008_virtual.wav";
 // var irUrl_1 = "IRs/ambisonic2binaural_filters/aalto2016_N3.wav";
