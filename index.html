@@ -107,7 +107,7 @@ const draw_frame = async () => {
         total_brightness += brightness / 255;
 
         // Threshold
-        const bw = brightness < 100 ? 0 : 255;
+        const bw = brightness < 140 ? 0 : 255;
         pixels[i] = pixels[i + 1] = pixels[i + 2] = bw;
 
         if (bw === 255) {
@@ -132,8 +132,8 @@ const draw_frame = async () => {
         const avgX = totalWhiteX / whiteCount;
         const avgY = totalWhiteY / whiteCount;
 
-        const azim = Math.round(360 * (avgX - cnv.width / 2) / cnv.width);
-        const elev = Math.round(180 * (cnv.height / 2 - avgY) / cnv.height);
+        const azim = -Math.round(360 * (avgX - cnv.width / 2) / cnv.width);
+        const elev = Math.round(180 * (cnv.height / 2) - avgY / cnv.height);
 
         azimValue.innerHTML = azim;
         elevValue.innerHTML = elev;
