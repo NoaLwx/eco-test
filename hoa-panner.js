@@ -109,8 +109,8 @@ $.holdReady( true ); // to force awaiting on common.html loading
 $(document).ready(function() {
 
     // update sample list for selection
-    var sampleList = {  "speech": "sounds/sample2.wav",
-                        "drum loop": "sounds/sample1.ogg"
+    var sampleList = {  "Gardiner Creek": "eco-2.wav",
+                        "VOid": "sounds/sample1.ogg"
     };
     var $el = $("#sample_no");
     $el.empty(); // remove old options
